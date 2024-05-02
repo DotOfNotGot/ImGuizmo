@@ -133,16 +133,16 @@ namespace ImCurveEdit
       return ret;
    }
 
-   int Edit(Delegate& delegate, const ImVec2& size, unsigned int id, const ImRect* clippingRect, ImVector<EditPoint>* selectedPoints)
+   int Edit(Delegate& delegate, const ImVec2& size, unsigned int id, CurveEditFlags flags, const ImRect* clippingRect, ImVector<EditPoint>* selectedPoints)
    {
       static bool selectingQuad = false;
       static ImVec2 quadSelection;
-      static int overCurve = -1;
       static int movingCurve = -1;
+      static int overCurve = -1;
       static bool scrollingV = false;
-      static std::set<EditPoint> selection;
       static bool overSelectedPoint = false;
 
+      std::set<EditPoint>& selection = delegate.GetSelection();
       int ret = 0;
 
       ImGuiIO& io = ImGui::GetIO();
@@ -160,10 +160,14 @@ namespace ImCurveEdit
       ImVec2& min = delegate.GetMin();
       ImVec2& max = delegate.GetMax();
 
+      bool mouseInContainer = container.Contains(io.MousePos);
+
+      bool zoom = (flags & CurveEditFlags_Zooming) != 0;
+      bool pan = (flags & CurveEditFlags_Panning) != 0;
       // handle zoom and VScroll
-      if (container.Contains(io.MousePos))
+      if (mouseInContainer)
       {
-         if (fabsf(io.MouseWheel) > FLT_EPSILON)
+         if (fabsf(io.MouseWheel) > FLT_EPSILON && zoom)
          {
             const float r = (io.MousePos.y - offset.y) / ssize.y;
             float ratioY = ImLerp(min.y, max.y, r);
@@ -176,7 +180,7 @@ namespace ImCurveEdit
             min.y = scaleValue(min.y);
             max.y = scaleValue(max.y);
          }
-         if (!scrollingV && ImGui::IsMouseDown(2))
+         if (!scrollingV && ImGui::IsMouseDown(2) && pan)
          {
             scrollingV = true;
          }
@@ -210,7 +214,7 @@ namespace ImCurveEdit
       for (size_t c = 0; c < curveCount; c++)
          curvesIndex[c] = int(c);
       int highLightedCurveIndex = -1;
-      if (overCurve != -1 && curveCount)
+      if (overCurve != -1 && curveCount && mouseInContainer)
       {
          ImSwap(curvesIndex[overCurve], curvesIndex[curveCount - 1]);
          highLightedCurveIndex = overCurve;
@@ -227,7 +231,7 @@ namespace ImCurveEdit
          CurveType curveType = delegate.GetCurveType(c);
          if (curveType == CurveNone)
             continue;
-         const ImVec2* pts = delegate.GetPoints(c);
+         auto pts = delegate.GetPoints(c);
          uint32_t curveColor = delegate.GetCurveColor(c);
          if ((c == highLightedCurveIndex && selection.empty() && !selectingQuad) || movingCurve == c)
             curveColor = 0xFFFFFFFF;
@@ -308,7 +312,7 @@ namespace ImCurveEdit
       static bool pointsMoved = false;
       static ImVec2 mousePosOrigin;
       static std::vector<ImVec2> originalPoints;
-      if (overSelectedPoint && io.MouseDown[0])
+      if (overSelectedPoint && io.MouseDown[0] && mouseInContainer)
       {
          if ((fabsf(io.MouseDelta.x) > 0.f || fabsf(io.MouseDelta.y) > 0.f) && !selection.empty())
          {
@@ -320,7 +324,7 @@ namespace ImCurveEdit
                int index = 0;
                for (auto& sel : selection)
                {
-                  const ImVec2* pts = delegate.GetPoints(sel.curveIndex);
+                  auto pts = delegate.GetPoints(sel.curveIndex);
                   originalPoints[index++] = pts[sel.pointIndex];
                }
             }
@@ -364,10 +368,11 @@ namespace ImCurveEdit
 
       // move curve
 
-      if (movingCurve != -1)
+      bool canMoveCurve = (flags & CurveEditFlags_MovableCurve) != 0;
+      if (movingCurve != -1 && canMoveCurve)
       {
          const size_t ptCount = delegate.GetPointCount(movingCurve);
-         const ImVec2* pts = delegate.GetPoints(movingCurve);
+         auto pts = delegate.GetPoints(movingCurve);
          if (!pointsMoved)
          {
             mousePosOrigin = io.MousePos;
@@ -393,14 +398,14 @@ namespace ImCurveEdit
             delegate.EndEdit();
          }
       }
-      if (movingCurve == -1 && overCurve != -1 && ImGui::IsMouseClicked(0) && selection.empty() && !selectingQuad)
+      if (movingCurve == -1 && overCurve != -1 && ImGui::IsMouseClicked(0) && selection.empty() && !selectingQuad && canMoveCurve)
       {
          movingCurve = overCurve;
          delegate.BeginEdit(overCurve);
       }
 
       // quad selection
-      if (selectingQuad)
+      if (selectingQuad && container.Contains(quadSelection))
       {
          const ImVec2 bmin = ImMin(quadSelection, io.MousePos);
          const ImVec2 bmax = ImMax(quadSelection, io.MousePos);
@@ -421,7 +426,7 @@ namespace ImCurveEdit
                if (ptCount < 1)
                   continue;
 
-               const ImVec2* pts = delegate.GetPoints(c);
+               auto pts = delegate.GetPoints(c);
                for (size_t p = 0; p < ptCount; p++)
                {
                   const ImVec2 center = pointToRange(pts[p]) * viewSize + offset;
@@ -433,7 +438,7 @@ namespace ImCurveEdit
             selectingQuad = false;
          }
       }
-      if (!overCurveOrPoint && ImGui::IsMouseClicked(0) && !selectingQuad && movingCurve == -1 && !overSelectedPoint && container.Contains(io.MousePos))
+      if (!overCurveOrPoint && ImGui::IsMouseClicked(0) && !selectingQuad && movingCurve == -1 && !overSelectedPoint && mouseInContainer)
       {
          selectingQuad = true;
          quadSelection = io.MousePos;

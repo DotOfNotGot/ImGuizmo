@@ -27,10 +27,27 @@
 #include <stdint.h>
 #include "imgui.h"
 
+#include <span>
+#include <set>
+
 struct ImRect;
 
 namespace ImCurveEdit
 {
+   enum CurveEditFlags
+   {
+      CurveEditFlags_None = 0,
+      CurveEditFlags_MovableCurve = 1 << 0,
+      CurveEditFlags_MovablePoints = 1 << 1,
+      CurveEditFlags_VerticallyMovablePoints = 1 << 2,
+      CurveEditFlags_HorizontallyMovablePoints = 1 << 3,
+      CurveEditFlags_OnlyPointMove = 14,
+      CurveEditFlags_Zooming = 1 << 4,
+      CurveEditFlags_Panning = 1 << 5,
+      CurveEditFlags_ZoomAndPan = 48,
+      CurveEditFlags_All = 63
+   };
+
    enum CurveType
    {
       CurveNone,
@@ -67,10 +84,11 @@ namespace ImCurveEdit
       virtual ImVec2& GetMax() = 0;
       virtual size_t GetPointCount(size_t curveIndex) = 0;
       virtual uint32_t GetCurveColor(size_t curveIndex) = 0;
-      virtual ImVec2* GetPoints(size_t curveIndex) = 0;
+      virtual std::span<ImVec2> GetPoints(size_t curveIndex) = 0;
       virtual int EditPoint(size_t curveIndex, int pointIndex, ImVec2 value) = 0;
       virtual void AddPoint(size_t curveIndex, ImVec2 value) = 0;
       virtual unsigned int GetBackgroundColor() { return 0xFF202020; }
+      virtual std::set<ImCurveEdit::EditPoint>& GetSelection() = 0;
       // handle undo/redo thru this functions
       virtual void BeginEdit(int /*index*/) {}
       virtual void EndEdit() {}
@@ -78,5 +96,5 @@ namespace ImCurveEdit
       virtual ~Delegate() = default;
    };
 
-   int Edit(Delegate& delegate, const ImVec2& size, unsigned int id, const ImRect* clippingRect = NULL, ImVector<EditPoint>* selectedPoints = NULL);
+   int Edit(Delegate& delegate, const ImVec2& size, unsigned int id, CurveEditFlags flags = CurveEditFlags_All, const ImRect* clippingRect = NULL, ImVector<EditPoint>* selectedPoints = NULL);
 }

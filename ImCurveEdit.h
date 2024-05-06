@@ -43,6 +43,7 @@ namespace ImCurveEdit
       CurveEditFlags_HorizontallyMovablePoints = 1 << 3,
       CurveEditFlags_OnlyPointMove = 14,
       CurveEditFlags_Zooming = 1 << 4,
+      CurveEditFlags_PointMoveWithZoom = 30,
       CurveEditFlags_Panning = 1 << 5,
       CurveEditFlags_ZoomAndPan = 48,
       CurveEditFlags_All = 63

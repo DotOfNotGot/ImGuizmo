@@ -220,6 +220,8 @@ namespace ImCurveEdit
          highLightedCurveIndex = overCurve;
       }
 
+      static bool pointsMoved = false;
+
       for (size_t cur = 0; cur < curveCount; cur++)
       {
          int c = curvesIndex[cur];
@@ -290,12 +292,12 @@ namespace ImCurveEdit
          for (size_t p = 0; p < ptCount; p++)
          {
             const int drawState = DrawPoint(draw_list, pointToRange(pts[p]), viewSize, offset, (selection.find({ int(c), int(p) }) != selection.end() && movingCurve == -1 && !scrollingV));
-            if (drawState && movingCurve == -1 && !selectingQuad)
+            if (drawState && movingCurve == -1 && !selectingQuad && mouseInContainer)
             {
                overCurveOrPoint = true;
                overSelectedPoint = true;
                overCurve = -1;
-               if (drawState == 2)
+               if (drawState == 2 && !pointsMoved)
                {
                   if (!io.KeyShift && selection.find({ int(c), int(p) }) == selection.end())
                      selection.clear();
@@ -309,7 +311,6 @@ namespace ImCurveEdit
          overCurve = -1;
 
       // move selection
-      static bool pointsMoved = false;
       static ImVec2 mousePosOrigin;
       static std::vector<ImVec2> originalPoints;
       if (overSelectedPoint && io.MouseDown[0] && mouseInContainer)

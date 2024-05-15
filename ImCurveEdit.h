@@ -94,6 +94,18 @@ namespace ImCurveEdit
       virtual void BeginEdit(int /*index*/) {}
       virtual void EndEdit() {}
 
+      virtual const char* XTooltipName(int curveIndex)
+      {
+         static const char* name = "X";
+         return name;
+      }
+
+      virtual const char* YTooltipName(int curveIndex)
+      {
+         static const char* name = "Y";
+         return name;
+      }
+
       virtual ~Delegate() = default;
    };
 

@@ -181,6 +181,8 @@ namespace ImCurveEdit
             };
             min.y = scaleValue(min.y);
             max.y = scaleValue(max.y);
+            min.x = scaleValue(min.x);
+            max.x = scaleValue(max.x);
          }
          if (!scrollingV && ImGui::IsMouseDown(2) && pan)
          {
@@ -309,6 +311,13 @@ namespace ImCurveEdit
                      selection.clear();
                   selection.insert({ int(c), int(p) });
                }
+
+               ImGui::BeginTooltipEx(ImGuiTooltipFlags_OverridePrevious, ImGuiWindowFlags_None);
+
+               ImGui::Text("%s: %.2f", delegate.XTooltipName(c), pts[p].x);
+               ImGui::Text("%s: %.2f", delegate.YTooltipName(c), pts[p].y);
+
+               ImGui::EndTooltip();
             }
          }
       } // curves loop

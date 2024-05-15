@@ -170,7 +170,7 @@ namespace ImCurveEdit
          if (fabsf(io.MouseWheel) > FLT_EPSILON && zoom)
          {
             ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelY);
-            
+
             const float r = (io.MousePos.y - offset.y) / ssize.y;
             float ratioY = ImLerp(min.y, max.y, r);
             auto scaleValue = [&](float v) {
@@ -193,11 +193,15 @@ namespace ImCurveEdit
       const ImVec2 sizeOfPixel = ImVec2(1.f, 1.f) / viewSize;
       const size_t curveCount = delegate.GetCurveCount();
 
-      if (scrollingV)
+      if (scrollingV && mouseInContainer)
       {
          float deltaH = io.MouseDelta.y * range.y * sizeOfPixel.y;
+         float deltaV = io.MouseDelta.x * range.x * sizeOfPixel.x;
+
          min.y -= deltaH;
          max.y -= deltaH;
+         min.x -= deltaV;
+         max.x -= deltaV;
          if (!ImGui::IsMouseDown(2))
             scrollingV = false;
       }

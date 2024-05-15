@@ -169,6 +169,8 @@ namespace ImCurveEdit
       {
          if (fabsf(io.MouseWheel) > FLT_EPSILON && zoom)
          {
+            ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelY);
+            
             const float r = (io.MousePos.y - offset.y) / ssize.y;
             float ratioY = ImLerp(min.y, max.y, r);
             auto scaleValue = [&](float v) {

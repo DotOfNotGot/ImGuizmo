@@ -213,7 +213,11 @@ namespace ImCurveEdit
       auto pointToRange = [&](ImVec2 pt) { return (pt - min) / range; };
       auto rangeToPoint = [&](ImVec2 pt) { return (pt * range) + min; };
 
-      draw_list->AddLine(ImVec2(-1.f, -min.y / range.y) * viewSize + offset, ImVec2(1.f, -min.y / range.y) * viewSize + offset, 0xFF000000, 1.5f);
+      draw_list->AddLine(ImVec2(-min.x / range.x, -1.f) * viewSize + offset,
+         ImVec2(-min.x / range.x, 1.f) * viewSize + offset, 0xFF000000, 1.5f);
+      draw_list->AddLine(ImVec2(-1.f, -min.y / range.y) * viewSize + offset,
+         ImVec2(1.f, -min.y / range.y) * viewSize + offset, 0xFF000000, 1.5f);
+
       bool overCurveOrPoint = false;
 
       int localOverCurve = -1;

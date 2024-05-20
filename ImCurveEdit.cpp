@@ -160,6 +160,7 @@ namespace ImCurveEdit
       ImVec2& min = delegate.GetMin();
       ImVec2& max = delegate.GetMax();
 
+      ImGui::SetKeyOwner(ImGuiKey_MouseWheelY, id);
       bool mouseInContainer = container.Contains(io.MousePos);
 
       bool zoom = (flags & CurveEditFlags_Zooming) != 0;
@@ -169,7 +170,6 @@ namespace ImCurveEdit
       {
          if (fabsf(io.MouseWheel) > FLT_EPSILON && zoom)
          {
-            ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelY);
 
             const float r = (io.MousePos.y - offset.y) / ssize.y;
             float ratioY = ImLerp(min.y, max.y, r);

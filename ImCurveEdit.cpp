@@ -160,8 +160,10 @@ namespace ImCurveEdit
       ImVec2& min = delegate.GetMin();
       ImVec2& max = delegate.GetMax();
 
-      ImGui::SetKeyOwner(ImGuiKey_MouseWheelY, id);
       bool mouseInContainer = container.Contains(io.MousePos);
+
+      if(mouseInContainer)
+         ImGui::SetKeyOwner(ImGuiKey_MouseWheelY, id);
 
       bool zoom = (flags & CurveEditFlags_Zooming) != 0;
       bool pan = (flags & CurveEditFlags_Panning) != 0;
@@ -213,10 +215,33 @@ namespace ImCurveEdit
       auto pointToRange = [&](ImVec2 pt) { return (pt - min) / range; };
       auto rangeToPoint = [&](ImVec2 pt) { return (pt * range) + min; };
 
-      draw_list->AddLine(ImVec2(-min.x / range.x, -1.f) * viewSize + offset,
-         ImVec2(-min.x / range.x, 1.f) * viewSize + offset, 0xFF000000, 1.5f);
-      draw_list->AddLine(ImVec2(-1.f, -min.y / range.y) * viewSize + offset,
-         ImVec2(1.f, -min.y / range.y) * viewSize + offset, 0xFF000000, 1.5f);
+      constexpr float cellsize = 0.5f;
+
+      float xWorldZero = -min.x / range.x;
+      draw_list->AddLine(ImVec2(xWorldZero, -1.f) * viewSize + offset,
+         ImVec2(xWorldZero, 1.f) * viewSize + offset, 0xFF000000, 1.5f);
+
+      for (int i = 0; i < static_cast<int>(range.x / cellsize) + 1; ++i)
+      {
+         float x = ImFloor((min.x + i * cellsize) / cellsize) * cellsize;
+         float x_range = (x - min.x) / range.x;
+
+         draw_list->AddLine(ImVec2(x_range, -1.f) * viewSize + offset,
+         ImVec2(x_range, 1.f) * viewSize + offset, 0xFF101010, 1.f);
+      }
+
+      float yWorldZero = -min.y / range.y;
+      draw_list->AddLine(ImVec2(-1.f, yWorldZero) * viewSize + offset,
+         ImVec2(1.f, yWorldZero) * viewSize + offset, 0xFF000000, 1.5f);
+
+      for (int i = 0; i < static_cast<int>(range.y / cellsize) + 2; ++i)
+      {
+         float y = ImFloor((min.y + i * cellsize) / cellsize) * cellsize;
+         float y_range = (y - min.y) / range.y;
+
+         draw_list->AddLine(ImVec2(-1.f, y_range) * viewSize + offset,
+         ImVec2(1.f, y_range) * viewSize + offset, 0xFF101010, 1.f);
+      }
 
       bool overCurveOrPoint = false;
 

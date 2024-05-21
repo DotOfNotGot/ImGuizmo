@@ -379,7 +379,14 @@ namespace ImCurveEdit
             int originalIndex = 0;
             for (auto& sel : prevSelection)
             {
-               const ImVec2 p = rangeToPoint(pointToRange(originalPoints[originalIndex]) + (io.MousePos - mousePosOrigin) * sizeOfPixel);
+               ImVec2 p = rangeToPoint(pointToRange(originalPoints[originalIndex]) + (io.MousePos - mousePosOrigin) * sizeOfPixel);
+
+               if(io.KeyCtrl && prevSelection.size() == 1)
+               {
+                  p.x = ImFloor(p.x / cellsize + 0.5f) * cellsize;
+                  p.y = ImFloor(p.y / cellsize + 0.5f) * cellsize;
+               }
+
                const int newIndex = delegate.EditPoint(sel.curveIndex, sel.pointIndex, p);
                if (newIndex != sel.pointIndex)
                {
